@@ -98,6 +98,16 @@ def checkup(args):
             container = client.containers.get(cmd['name'])
             checkup_one(client, container, cmd['command'])
 
+def print_args(args):
+    import re
+    config = load_config()
+    pattern = ".*"
+    if len(args) == 1: pattern = args[0]
+    for cmd in config['cmds'].values():
+        if re.search(pattern, cmd['name']) != None:
+            command = " ".join(cmd['command'])
+            print "docker run ", command
+
 def list():
     config = load_config()
     for cmd in config['cmds'].values():
@@ -111,7 +121,6 @@ def forget(args):
     save_config(config)
 
 def purge():
-    # I think this is almost exactly "docker image prune" but never remember that one
     client = docker.from_env()
     for a in client.images.list():
         if len(a.tags) == 0:
@@ -135,13 +144,14 @@ def other(cmd, args):
     call(['docker', cmd] + args)
 
 
-if len(sys.argv) < 2:
+if len(sys.argv) < 1:
     showhelp()
 else:
     arg = sys.argv[1]
     rest = sys.argv[2:]
     if arg == 'run': run(rest)
     elif arg == 'checkup': checkup(rest)
+    elif arg == 'print': print_args(rest)
     elif arg == 'list': list()
     elif arg == 'forget': forget(rest)
     elif arg == 'help': showhelp()
